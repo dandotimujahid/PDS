@@ -44528,7 +44528,7 @@
 {"packageName":"linux-image-6.8.0-55-generic","version":"6.8.0-55.57","repo":"noble-security/main"},
 {"packageName":"linux-image-6.8.0-56-generic","version":"6.8.0-56.58+1","repo":"noble-proposed/main"},
 {"packageName":"linux-image-6.8.0-57-generic","version":"6.8.0-57.59","repo":"noble-security/main"},
-{"packageName":"linux-image-6.8.0-58-generic","version":"6.8.0-58.60","repo":"noble-proposed/main"},
+{"packageName":"linux-image-6.8.0-58-generic","version":"6.8.0-58.60+1","repo":"noble-proposed/main"},
 {"packageName":"linux-image-extra-virtual","version":"6.8.0-31.31","repo":"noble/main"},
 {"packageName":"linux-image-extra-virtual-hwe-24.04","version":"6.11.0-21.21~24.04.1","repo":"noble-security/main"},
 {"packageName":"linux-image-extra-virtual-hwe-24.04-edge","version":"6.11.0-21.21~24.04.1","repo":"noble-security/main"},
