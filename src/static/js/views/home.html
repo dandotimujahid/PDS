@@ -134,7 +134,7 @@
             <tr ng-repeat="item in pagedItems[currentPage] | orderBy:sort.sortingOrder:sort.reverse">
               <td>{{item.P}}</td>
               <td>{{item.V}}</td>
-	      <td>{{item.R || 'N/A'}}</td>
+	      <td>{{item.R}}</td>
               <td>{{getDisplayDistro(item)}}</td>
               <!-- <td>    </td> -->
             </tr>
