@@ -89,7 +89,7 @@ class PackageSearch:
                         cachedPackage["P"] = pkg["packageName"]
                         cachedPackage["S"] = cachedPackage["P"].lower().upper()
                         cachedPackage["V"] = pkg["version"]
-                        cachedPackage["repo"] = pkg.get("repo", "N/A")
+                        cachedPackage["R"] = pkg["repo"]
                         try:
                             cachedPackage["B"] = cls.DISTRO_BIT_MAP[distroName][distroVersion]
                         except Exception as e:
