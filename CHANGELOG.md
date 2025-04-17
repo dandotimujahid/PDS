@@ -1,6 +1,11 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## v1.6.0-demo
+## Enhancements
+-- Updated Data files with repo data
+-- Updated UI to add repo column
+
 ## v1.5.75
 ## Enhancements
 -- Updated Data files
