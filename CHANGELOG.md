@@ -1,6 +1,10 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## v1.6.0
+## Enhancements
+-- Updated Data files with repo information
+
 ## v1.5.75
 ## Enhancements
 -- Updated Data files
