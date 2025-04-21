@@ -90,7 +90,6 @@
             <tr class="info">
               <th>Package Name<a ng-click="set_sort_order('P')"><i ng-class="sortIcon('P')"></i></a></th>
               <th>Version<a ng-click="set_sort_order('V')"><i ng-class="sortIcon('V')"></i></a></th>
-              <th>Repo<a ng-click="set_sort_order('R')"><i ng-class="sortIcon('R')"></i></a></th>
               <th>Distro</th> <!-- <th>Distro<a ng-click="set_sort_order('D')"><i ng-class="sortIcon('D')"></i></a></th>-->
               <!-- <th></th> <th>Description<a ng-click="set_sort_order('id')"><i class="icon-sort"></i></a></th> -->
             </tr>
@@ -99,7 +98,6 @@
             <tr class="info">
               <th>Package Name<a ng-click="set_sort_order('P')"><i ng-class="sortIcon('P')"></i></a></th>
               <th>Version<a ng-click="set_sort_order('V')"><i ng-class="sortIcon('V')"></i></a></th>
-              <th>Repo<a ng-click="set_sort_order('R')"><i ng-class="sortIcon('R')"></i></a></th>
               <th>Distro</th> <!-- <th>Distro<a ng-click="set_sort_order('D')"><i ng-class="sortIcon('D')"></i></a></th>-->
               <!-- <th></th> <th>Description<a ng-click="set_sort_order('id')"><i class="icon-sort"></i></a></th> -->
             </tr>
@@ -133,7 +131,6 @@
             <tr ng-repeat="item in pagedItems[currentPage] | orderBy:sort.sortingOrder:sort.reverse">
               <td>{{item.P}}</td>
               <td>{{item.V}}</td>
-              <td>{{item.R}}</td>
               <td>{{getDisplayDistro(item)}}</td>
               <!-- <td>    </td> -->
             </tr>
