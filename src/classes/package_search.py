@@ -68,8 +68,8 @@ class PackageSearch:
     @classmethod
     def preparePackageData(cls):
         data_dir = cls.getDataFilePath()
-        package_info = [];
-        package_data = {};
+        package_info = []
+        package_data = {}
         cachedPackage = {}
         
         for distroName in list(SUPPORTED_DISTROS.keys()):
@@ -89,6 +89,7 @@ class PackageSearch:
                         cachedPackage["P"] = pkg["packageName"]
                         cachedPackage["S"] = cachedPackage["P"].lower().upper()
                         cachedPackage["V"] = pkg["version"]
+                        cachedPackage["R"] = pkg.get("repo", "")
                         try:
                             cachedPackage["B"] = cls.DISTRO_BIT_MAP[distroName][distroVersion]
                         except Exception as e:
@@ -182,23 +183,23 @@ class PackageSearch:
 
             final_results = copy.deepcopy(preliminary_results); #Deep Copy is required since we just need to remove the "S" field from returnable result 
             for pkg in final_results:
-                del pkg['S']
+                if 'S' in pkg:
+                    del pkg['S']
                 
             LOGGER.debug('searchPackages: Search Results Length : %s' % (len(final_results)))
             
             if(len(final_results) > MAX_RECORDS_TO_SEND): #This is a large result set so add it to cache
                 LOGGER.debug('searchPackages: Add results to cache')
-                if(len(list(self.INSTANCE.local_cache.keys())) >= CACHE_SIZE): #CACHE_SIZE is breached so remove oldest cached object
-                    #LOGGER.debug('searchPackages: Cache full. So remove the oldest item. Total of Cached Items: %s' % (len(self.INSTANCE.local_cache.keys()))
-                    self.INSTANCE.local_cache.pop(self.INSTANCE.cache_keys[0],None) #self.INSTANCE.cache_keys[0] has the Oldest Cache Key
-                    self.INSTANCE.cache_keys.remove(self.INSTANCE.cache_keys[0]) #Remoe the cache_key from cache_keys for it is removed from local_cache
+                if(len(list(self.INSTANCE.local_cache.keys())) >= CACHE_SIZE):
+                    self.INSTANCE.local_cache.pop(self.INSTANCE.cache_keys[0],None)
+                    self.INSTANCE.cache_keys.remove(self.INSTANCE.cache_keys[0])
                 
                 LOGGER.debug('searchPackages: Add new Key to cache_keys for indexing.')
-                self.INSTANCE.cache_keys.append(cache_key)     #append the new key to the list of cache_keys
+                self.INSTANCE.cache_keys.append(cache_key)
                 self.INSTANCE.local_cache[cache_key] = final_results
         else:
             LOGGER.debug('searchPackages: Getting from cache')
-            final_results = self.INSTANCE.local_cache[cache_key];
+            final_results = self.INSTANCE.local_cache[cache_key]
         
         LOGGER.debug('searchPackages: Cache Keys: %s' %(json.dumps(self.INSTANCE.cache_keys)))
         totalLength = len(final_results)
@@ -214,14 +215,14 @@ class PackageSearch:
                 endIdx = (page_number*MAX_RECORDS_TO_SEND)+MAX_RECORDS_TO_SEND
                 LOGGER.debug('searchPackages: Sending records %s of %s and length of results is %s' % (startIdx,endIdx,totalLength))
                 results = final_results[startIdx:endIdx]
-                last_page = 1#math.ceil(totalLength/MAX_RECORDS_TO_SEND)
+                last_page = 1
                 LOGGER.debug('searchPackages: Applied pagination changes')
             else:
                 startIdx = page_number*MAX_RECORDS_TO_SEND
-                endIdx = totalLength #(page_number*MAX_RECORDS_TO_SEND)+MAX_RECORDS_TO_SEND
+                endIdx = totalLength
                 LOGGER.debug('searchPackages: Sending records %s of %s and length of results is %s' % (startIdx,endIdx,totalLength))
                 results = final_results[startIdx:endIdx]
-                last_page = 1#math.ceil(totalLength/MAX_RECORDS_TO_SEND)
+                last_page = 1
                 LOGGER.debug('searchPackages: Applied pagination changes')
                 
         final_data = {
@@ -235,4 +236,3 @@ class PackageSearch:
         LOGGER.debug('searchPackages: Returning from function')
 
         return json.dumps(final_data)
-
