@@ -68,46 +68,53 @@ class PackageSearch:
     @classmethod
     def preparePackageData(cls):
         data_dir = cls.getDataFilePath()
-        package_info = []
         package_data = {}
-        cachedPackage = {}
-        
+    
         for distroName in list(SUPPORTED_DISTROS.keys()):
             for distroVersion in sorted(SUPPORTED_DISTROS[distroName].keys()):
                 distro_file = SUPPORTED_DISTROS[distroName][distroVersion]
-            
-                package_info = json.load(open('%s/%s' % (data_dir, distro_file)))
-                distro_file_name = distro_file                  
-                
+                package_info = json.load(open("{}/{}".format(data_dir, distro_file)))
+
                 for pkg in package_info:
                     try:
                         pkg_key = pkg["packageName"] + '_' + pkg["version"]
                     except Exception as ex:
                         LOGGER.error('preparePackageData: key not found for package %s' % str(ex))
+                        continue
+
                     if pkg_key not in package_data:
                         cachedPackage = {}
                         cachedPackage["P"] = pkg["packageName"]
                         cachedPackage["S"] = cachedPackage["P"].lower().upper()
                         cachedPackage["V"] = pkg["version"]
-                        cachedPackage["R"] = pkg.get("repo", "")
+                    
+                        # Properly check repo
+                        repo_val = pkg.get("repo")
+                        cachedPackage["R"] = repo_val if repo_val else ""
+
                         try:
                             cachedPackage["B"] = cls.DISTRO_BIT_MAP[distroName][distroVersion]
                         except Exception as e:
-                            raise #This occurrs only if there is a problem with how SUPPORTED_DISTROS is configured in config py
+                            raise  # Only happens if SUPPORTED_DISTROS is misconfigured
 
                         cachedPackage[distroName] = [distroVersion]
                         package_data[pkg_key] = cachedPackage
+
                     else:
+                        # Add distro version if needed
                         if distroName not in package_data[pkg_key]:
                             package_data[pkg_key][distroName] = [distroVersion]
-                            package_data[pkg_key]['B'] += cls.DISTRO_BIT_MAP[distroName][distroVersion]
+                            package_data[pkg_key]["B"] += cls.DISTRO_BIT_MAP[distroName][distroVersion]
                         else:
                             if distroVersion not in package_data[pkg_key][distroName]:
                                 package_data[pkg_key][distroName].append(distroVersion)
-                                package_data[pkg_key]['B'] += cls.DISTRO_BIT_MAP[distroName][distroVersion]
-                                
-        json_data = list(package_data.values())
+                                package_data[pkg_key]["B"] += cls.DISTRO_BIT_MAP[distroName][distroVersion]
 
+                        # Patch: if repo is currently empty, but this pkg entry has one, use it
+                        if not package_data[pkg_key].get("R") and pkg.get("repo"):
+                            package_data[pkg_key]["R"] = pkg["repo"]
+
+        json_data = list(package_data.values())
         return json_data
 
     @classmethod
