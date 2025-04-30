@@ -2,7 +2,7 @@ import json
 import os
 import urllib.request, urllib.parse, urllib.error
 import collections
-import copy 
+import copy
 import math
 from config import DATA_FILE_LOCATION, DISABLE_PAGINATION, MAX_RECORDS_TO_CONCAT, LOGGER, MAX_RECORDS_TO_SEND, CACHE_SIZE
 from config import SUPPORTED_DISTROS
@@ -12,27 +12,27 @@ class PackageSearch:
     local_cache ={}
     cache_keys = []
     DISTRO_BIT_MAP = {}
-    INSTANCE = None   
-    
+    INSTANCE = None
+
     @classmethod
     def getDataFilePath(cls):
-        '''This method will resolve the distributions data path based on configuration file to give actual 
+        '''This method will resolve the distributions data path based on configuration file to give actual
         location of the file.
         '''
         LOGGER.debug('In getDataFilePath')
         return DATA_FILE_LOCATION
-        
+
     @classmethod
     def loadSupportedDistros(cls):
         '''
         Returns list of supported OS distributions in PDS
         '''
         LOGGER.debug('loadSupportedDistros: In loadSupportedDistros')
-        
+
         if(len(list(cls.DISTRO_BIT_MAP.keys())) > 0):
             return cls.DISTRO_BIT_MAP
-            
-        bitFlag = 1        
+
+        bitFlag = 1
         distroRecord = {}
         for supportedDistroName in list(SUPPORTED_DISTROS.keys()):
             for distroVersion in sorted(SUPPORTED_DISTROS[supportedDistroName].keys()):
@@ -51,7 +51,7 @@ class PackageSearch:
         LOGGER.debug('loadPackageData: In loadSupportedDistros')
         distro_data_file = '%s/cached_data.json' % cls.getDataFilePath()
         try:
-            json_data = json.load(open(distro_data_file))           
+            json_data = json.load(open(distro_data_file))
         except:
             LOGGER.warn('loadPackageData: Loading cached distros data failed generating from scratch')
             LOGGER.debug('loadPackageData: start writing distros data')
@@ -67,62 +67,49 @@ class PackageSearch:
 
     @classmethod
     def preparePackageData(cls):
-    data_dir = cls.getDataFilePath()
-    package_data = {}
+        data_dir = cls.getDataFilePath()
+        package_info = []
+        package_data = {}
+        cachedPackage = {}
 
-    for distroName in list(SUPPORTED_DISTROS.keys()):
-        for distroVersion in sorted(SUPPORTED_DISTROS[distroName].keys()):
-            distro_file = SUPPORTED_DISTROS[distroName][distroVersion]
-            package_info = json.load(open("{}/{}".format(data_dir, distro_file)))
+        for distroName in list(SUPPORTED_DISTROS.keys()):
+            for distroVersion in sorted(SUPPORTED_DISTROS[distroName].keys()):
+                distro_file = SUPPORTED_DISTROS[distroName][distroVersion]
 
-            for pkg in package_info:
-                try:
-                    pkg_key = pkg["packageName"] + '_' + pkg["version"]
-                except Exception as ex:
-                    LOGGER.error('preparePackageData: key not found for package %s' % str(ex))
-                    continue
+                package_info = json.load(open('%s/%s' % (data_dir, distro_file)))
+                distro_file_name = distro_file
 
-                if pkg_key not in package_data:
-                    cachedPackage = {}
-                    cachedPackage["P"] = pkg["packageName"]
-                    cachedPackage["S"] = cachedPackage["P"].lower().upper()
-                    cachedPackage["V"] = pkg["version"]
-
-                    # Properly check repo
-                    repo_val = pkg.get("repo")
-                    cachedPackage["R"] = repo_val if repo_val else ""
-
+                for pkg in package_info:
                     try:
-                        cachedPackage["B"] = cls.DISTRO_BIT_MAP[distroName][distroVersion]
-                    except Exception as e:
-                        raise  # Only happens if SUPPORTED_DISTROS is misconfigured
+                        pkg_key = pkg["packageName"] + '_' + pkg["version"]
+                    except Exception as ex:
+                        LOGGER.error('preparePackageData: key not found for package %s' % str(ex))
+                    if pkg_key not in package_data:
+                        cachedPackage = {}
+                        cachedPackage["P"] = pkg["packageName"]
+                        cachedPackage["S"] = cachedPackage["P"].lower().upper()
+                        cachedPackage["V"] = pkg["version"]
+                        cachedPackage["R"] = pkg.get("repo", "")
+                        try:
+                            cachedPackage["B"] = cls.DISTRO_BIT_MAP[distroName][distroVersion]
+                        except Exception as e:
+                            raise #This occurrs only if there is a problem with how SUPPORTED_DISTROS is configured in config py
 
-                    cachedPackage[distroName] = [distroVersion]
-                    package_data[pkg_key] = cachedPackage
-
-                else:
-                    # Add distro version if needed
-                    if distroName not in package_data[pkg_key]:
-                        package_data[pkg_key][distroName] = [distroVersion]
-                        package_data[pkg_key]["B"] += cls.DISTRO_BIT_MAP[distroName][distroVersion]
-                        
-                        # Add repo if needed
-                        repo_val = pkg.get("repo")
-                        if repo_val:
-                            package_data[pkg_key]["R"] = repo_val
+                        cachedPackage[distroName] = [distroVersion]
+                        package_data[pkg_key] = cachedPackage
                     else:
-                        if distroVersion not in package_data[pkg_key][distroName]:
-                            package_data[pkg_key][distroName].append(distroVersion)
-                            package_data[pkg_key]["B"] += cls.DISTRO_BIT_MAP[distroName][distroVersion]
-                        
-                        # Add repo if needed
-                        repo_val = pkg.get("repo")
-                        if repo_val and "R" not in package_data[pkg_key]:
-                            package_data[pkg_key]["R"] = repo_val
+                        if distroName not in package_data[pkg_key]:
+                            package_data[pkg_key][distroName] = [distroVersion]
+                            package_data[pkg_key]['B'] += cls.DISTRO_BIT_MAP[distroName][distroVersion]
+                        else:
+                            if distroVersion not in package_data[pkg_key][distroName]:
+                                package_data[pkg_key][distroName].append(distroVersion)
+                                package_data[pkg_key]['B'] += cls.DISTRO_BIT_MAP[distroName][distroVersion]
 
-    json_data = list(package_data.values())
-    return json_data
-        
+        json_data = list(package_data.values())
+
+        return json_data
+
     @classmethod
     def get_instance(cls):
         LOGGER.debug('get_instance: In get_instance')
@@ -139,7 +126,7 @@ class PackageSearch:
     def load(cls):
         LOGGER.debug('In load')
         return cls.get_instance()
-        
+
     #getSupportedDistros - API returns details about supported distros in JSON format
     def getSupportedDistros(self):
         LOGGER.debug('In getSupportedDistros')
@@ -159,25 +146,25 @@ class PackageSearch:
             'packages': []
             }
             return json.dumps(final_data)
-            
+
         LOGGER.debug('searchPackages: search_term : %s' % (search_term))
         LOGGER.debug('searchPackages: exact_match : %s' % (exact_match))
         LOGGER.debug('searchPackages: search_bit_flag : %s' % (search_bit_flag))
-        
+
         search_packages_begin_with = str(search_term).endswith('*')
         search_packages_end_with = str(search_term).startswith('*')
         search_anywhere_in_packages = (search_packages_begin_with and search_packages_end_with) or ('*' not in str(search_term))
-        
+
         LOGGER.debug('searchPackages: search_packages_begin_with : %s' % (search_packages_begin_with))
         LOGGER.debug('searchPackages: search_packages_end_with : %s' % (search_packages_end_with))
         LOGGER.debug('searchPackages: search_anywhere_in_packages : %s' % (search_anywhere_in_packages))
-        
+
         cache_key = 'ck_%s_%s_%s' % (search_term, exact_match, search_bit_flag)
         LOGGER.debug('searchPackages: Cache Key is : %s' % (cache_key))
-        
+
         search_term = search_term.replace('*', '')
         search_term_ucase = search_term.upper()
-       
+
         preliminary_results = {}
         if( (cache_key in self.INSTANCE.local_cache) == False ):
             LOGGER.debug('searchPackages: Not available in cache, so make fresh search')
@@ -194,31 +181,31 @@ class PackageSearch:
                 LOGGER.debug('searchPackages: Find names that end with')
                 preliminary_results = [s for s in self.INSTANCE.package_data if str(s['S']).endswith(search_term_ucase) and (s['B'] & search_bit_flag) > 0]
 
-            final_results = copy.deepcopy(preliminary_results); #Deep Copy is required since we just need to remove the "S" field from returnable result 
+            final_results = copy.deepcopy(preliminary_results); #Deep Copy is required since we just need to remove the "S" field from returnable result
             for pkg in final_results:
                 if 'S' in pkg:
                     del pkg['S']
-                
+
             LOGGER.debug('searchPackages: Search Results Length : %s' % (len(final_results)))
-            
+
             if(len(final_results) > MAX_RECORDS_TO_SEND): #This is a large result set so add it to cache
                 LOGGER.debug('searchPackages: Add results to cache')
                 if(len(list(self.INSTANCE.local_cache.keys())) >= CACHE_SIZE):
                     self.INSTANCE.local_cache.pop(self.INSTANCE.cache_keys[0],None)
                     self.INSTANCE.cache_keys.remove(self.INSTANCE.cache_keys[0])
-                
+
                 LOGGER.debug('searchPackages: Add new Key to cache_keys for indexing.')
                 self.INSTANCE.cache_keys.append(cache_key)
                 self.INSTANCE.local_cache[cache_key] = final_results
         else:
             LOGGER.debug('searchPackages: Getting from cache')
             final_results = self.INSTANCE.local_cache[cache_key]
-        
+
         LOGGER.debug('searchPackages: Cache Keys: %s' %(json.dumps(self.INSTANCE.cache_keys)))
         totalLength = len(final_results)
-        
+
         last_page = math.ceil(totalLength/float(MAX_RECORDS_TO_SEND))
-        
+
         if (totalLength <= MAX_RECORDS_TO_SEND):
             LOGGER.debug('searchPackages: Sending all records')
             results = final_results
@@ -237,7 +224,7 @@ class PackageSearch:
                 results = final_results[startIdx:endIdx]
                 last_page = 1
                 LOGGER.debug('searchPackages: Applied pagination changes')
-                
+
         final_data = {
             'total_packages': totalLength,
             'current_page': page_number,
