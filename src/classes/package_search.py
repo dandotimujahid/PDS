@@ -87,7 +87,7 @@ class PackageSearch:
                     cachedPackage["P"] = pkg["packageName"]
                     cachedPackage["S"] = cachedPackage["P"].lower().upper()
                     cachedPackage["V"] = pkg["version"]
-                
+
                     # Properly check repo
                     repo_val = pkg.get("repo")
                     cachedPackage["R"] = repo_val if repo_val else ""
@@ -105,14 +105,20 @@ class PackageSearch:
                     if distroName not in package_data[pkg_key]:
                         package_data[pkg_key][distroName] = [distroVersion]
                         package_data[pkg_key]["B"] += cls.DISTRO_BIT_MAP[distroName][distroVersion]
+                        
+                        # Add repo if needed
+                        repo_val = pkg.get("repo")
+                        if repo_val:
+                            package_data[pkg_key]["R"] = repo_val
                     else:
                         if distroVersion not in package_data[pkg_key][distroName]:
                             package_data[pkg_key][distroName].append(distroVersion)
                             package_data[pkg_key]["B"] += cls.DISTRO_BIT_MAP[distroName][distroVersion]
-
-                    # Update repo name if present in pkg
-                    if pkg.get("repo"):
-                        package_data[pkg_key]["R"] = pkg["repo"]
+                        
+                        # Add repo if needed
+                        repo_val = pkg.get("repo")
+                        if repo_val and "R" not in package_data[pkg_key]:
+                            package_data[pkg_key]["R"] = repo_val
 
     json_data = list(package_data.values())
     return json_data
