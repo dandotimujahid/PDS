@@ -55,9 +55,6 @@ SUPPORTED_DISTROS = {
       "SLES 15 SP6":"Suse_Linux_Enterprise_Server_15_SP6_Package_List.json"
    },
    "SUSE Package Hub":{
-      "SLES 12 SP3":"SUSE_Package_Hub_SLES_12_SP3.json",
-      "SLES 12 SP4":"SUSE_Package_Hub_SLES_12_SP4.json",
-      "SLES 12 SP5":"SUSE_Package_Hub_SLES_12_SP5.json",
       "SLES 15":"SUSE_Package_Hub_SLES_15.json",
       "SLES 15 SP1":"SUSE_Package_Hub_SLES_15_SP1.json",
       "SLES 15 SP2":"SUSE_Package_Hub_SLES_15_SP2.json",
